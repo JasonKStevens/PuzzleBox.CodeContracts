@@ -17,7 +17,7 @@ A promise is returned by the handler and allows the caller to receive updates on
 
 Promises can be chained with sub-contracts as command handlers call command handlers.
 
-```
+```c#
   var contract = new Contract<ExampleSubCommand, ExampleResult>()
     .Preconditions(AssertPreconditionsAsync)
     .Postonditions(AssertPostconditionsAsync)
@@ -25,7 +25,7 @@ Promises can be chained with sub-contracts as command handlers call command hand
     .Behavior(ExecuteInner);
 ```
 
-```
+```c#
   // Call to return a promise
   var promise = commandHandler.Execute(command);
 
