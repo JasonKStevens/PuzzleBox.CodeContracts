@@ -1,16 +1,17 @@
 # PuzzleBox.CodeContracts
 
 ## Overview
-This project is to work through an idea that combines Design by Contract with Promises.  The contract defines the specification of the routine and the promise monitors its fulfillment.
+This project is to work through an idea that combines Design by Contract with Promises.  The contract defines the specification of the routine and the promise monitors its fulfillment, streaming events back to the client in real-time.
 
-Inspired by Eiffel, the intention of a contract (and the events emitted by the promise) is that it relates to the behaviour of the routine but _not_ its implementation.  This means that it's the contract that is all and only what needs unit testing.  The exception to this is when side-effects come into play where mocks are needed to validate them.
+Inspired by Eiffel, the intention of contracts and promises is that they relate to the behaviour of their routine and _not_ its implementation.  This means that the contract is not only a formal specification of behaviour, it also defines what the unit tests should be.  Testing side-effects are the exception to this.
 
 Promises can be chained to "subcontracts", so the one promise being returned captures all events from the contract and subcontracts.
 
-## Why
-Being able to log the execution of a single server call is useful, especially when the log is streamed back to the client in real-time before the routine has completed.
+The main goals are:
 
-Logs are sometimes used as a poor replacement for debugging, so part of this project is to put development on rails to have the developer think more about the behaviour rather than the implementation.  The idea is to improve code correctness by making the specification formal and, in doing so, specify what the unit tests should be.
+* Provide real-time insights to the caller.
+* Reduce overall development time by improving code correctness and reliability from the outset.
+* Facilitate development rather than get in the way.
 
 ## Description
 Each command handler defines its contract: preconditions, postconditions and exceptions thrown.
@@ -58,3 +59,6 @@ promise.LogStream
 
 result = await promise.ResultTask;
 ```
+
+## Future
+Explore distributed calls and contracts.  So when a command handler is responsible for a distributed transaction say, or calls out to other subcontracted routines that are running on other machines or processes.
