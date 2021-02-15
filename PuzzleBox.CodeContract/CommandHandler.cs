@@ -14,13 +14,14 @@ namespace PuzzleBox.CodeContract
     }
 
     protected abstract Contract<TCommand, TResult> DeclareContract();
+    protected abstract Task<TResult> ExecuteInner(TCommand command);
 
     public IPromise<TCommand, TResult> Execute(TCommand command, IPromise parentPromise = null)
     {
       Promise = Contract.CreatePromise();
       parentPromise?.AddChildPromise(Promise);
 
-      Promise.Execute(command);
+      Promise.Execute(ExecuteInner, command);
       return Promise;
     }
 

@@ -1,42 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace PuzzleBox.CodeContract
 {
   public class Contract<TCommand, TResult>
   {
-    private Func<TCommand, Task> _assertPreconditions;
-    private Func<TResult, Task> _assertPostconditions;
-    private ICollection<Type> _throws;
-    private Func<TCommand, Task<TResult>> _executeTask;
+    private readonly IDictionary<string, Func<TCommand, bool>> _assertPreconditions;
+    private readonly IDictionary<string, Func<TResult, bool>> _assertPostconditions;
+    private readonly ICollection<Type> _throws;
 
     public Contract()
     {
+      _assertPreconditions = new Dictionary<string, Func<TCommand, bool>>();
+      _assertPostconditions = new Dictionary<string, Func<TResult, bool>>();
       _throws = new List<Type>();
     }
 
-    public Contract<TCommand, TResult> Preconditions(Func<TCommand, Task> assertPreconditions)
+    public Contract<TCommand, TResult> Requires(string assertion, Func<TCommand, bool> assertPreconditions)
     {
-      _assertPreconditions = assertPreconditions;
+      _assertPreconditions.Add(assertion, assertPreconditions);
       return this;
     }
 
-    public Contract<TCommand, TResult> Postonditions(Func<TResult, Task> assertPostconditions)
+    public Contract<TCommand, TResult> Ensures(string assertion, Func<TResult, bool> assertPostconditions)
     {
-      _assertPostconditions = assertPostconditions;
+      _assertPostconditions.Add(assertion, assertPostconditions);
       return this;
     }
 
-    public Contract<TCommand, TResult> Throws<TException>()
+    public Contract<TCommand, TResult> Throws<TException>(string when = null) // TODO
     {
       _throws.Add(typeof(TException));
-      return this;
-    }
-
-    public Contract<TCommand, TResult> Behavior(Func<TCommand, Task<TResult>> executeTask)
-    {
-      _executeTask = executeTask;
       return this;
     }
 
@@ -45,8 +39,7 @@ namespace PuzzleBox.CodeContract
       var promise = new Promise<TCommand, TResult>(
         _assertPreconditions,
         _assertPostconditions,
-        _throws,
-        _executeTask
+        _throws
       );
       return promise;
     }

@@ -3,35 +3,21 @@ using System.Threading.Tasks;
 
 namespace PuzzleBox.CodeContract
 {
-  public class ExampleSubCommandHandler : CommandHandler<ExampleSubCommand, ExampleResult>
+  public class ExampleSubCommandHandler : CommandHandler<ExampleSubCommand, MoneyTransferredEvent>
   {
-    private readonly Contract<ExampleSubCommand, ExampleResult> _promise;
-
-    protected override Contract<ExampleSubCommand, ExampleResult> DeclareContract()
+    protected override Contract<ExampleSubCommand, MoneyTransferredEvent> DeclareContract()
     {
-      var contract = new Contract<ExampleSubCommand, ExampleResult>()
-        .Preconditions(AssertPreconditionsAsync)
-        .Postonditions(AssertPostconditionsAsync)
+      var contract = new Contract<ExampleSubCommand, MoneyTransferredEvent>()
         .Throws<ArgumentNullException>()
-        .Behavior(ExecuteInner);
+      ;
 
       return contract;
     }
 
-    private Task<ExampleResult> ExecuteInner(ExampleSubCommand command)
+    protected override Task<MoneyTransferredEvent> ExecuteInner(ExampleSubCommand command)
     {
       Promise.Log(LogSeverity.Information, "Subcontract");
-      return Task.FromResult(new ExampleResult());
-    }
-
-    private Task AssertPreconditionsAsync(ExampleSubCommand command)
-    {
-      return Task.CompletedTask;
-    }
-
-    private Task AssertPostconditionsAsync(ExampleResult result)
-    {
-      return Task.CompletedTask;
+      return Task.FromResult(new MoneyTransferredEvent());
     }
   }
 }

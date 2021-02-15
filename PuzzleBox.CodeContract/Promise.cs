@@ -9,10 +9,9 @@ namespace PuzzleBox.CodeContract
 {
   public class Promise<TCommand, TResult> : IPromise<TCommand, TResult>
   {
-    private readonly Func<TCommand, Task> _assertPreconditions;
-    private readonly Func<TResult, Task> _assertPostconditions;
+    private readonly IDictionary<string, Func<TCommand, bool>> _assertPreconditions;
+    private readonly IDictionary<string, Func<TResult, bool>> _assertPostconditions;
     private readonly ICollection<Type> _throws;
-    private readonly Func<TCommand, Task<TResult>> _executeTask;
 
     public Task<TResult> ResultTask { get; private set; }
 
@@ -20,24 +19,22 @@ namespace PuzzleBox.CodeContract
     public IObservable<LogEvent> LogStream => _logSubject;
 
     public Promise(
-      Func<TCommand, Task> assertPreconditions,
-      Func<TResult, Task> assertPostconditions,
-      ICollection<Type> throws,
-      Func<TCommand, Task<TResult>> executeTask
+      IDictionary<string, Func<TCommand, bool>> assertPreconditions,
+      IDictionary<string, Func<TResult, bool>> assertPostconditions,
+      ICollection<Type> throws
       )
     {
       _assertPreconditions = assertPreconditions;
       _assertPostconditions = assertPostconditions;
       _throws = throws;
-      _executeTask = executeTask;
 
       _logSubject = new ReplaySubject<LogEvent>();
       _throws = new List<Type>();
     }
 
-    public void Execute(TCommand command)
+    public void Execute(Func<TCommand, Task<TResult>> executeInner, TCommand command)
     {
-      ResultTask = ExecuteTaskAsync(command);
+      ResultTask = ExecuteTaskAsync(executeInner, command);
     }
 
     public void AddChildPromise(IPromise childPromise)
@@ -46,20 +43,28 @@ namespace PuzzleBox.CodeContract
         .Subscribe(_logSubject);
     }
 
-    private async Task<TResult> ExecuteTaskAsync(TCommand command)
+    private async Task<TResult> ExecuteTaskAsync(Func<TCommand, Task<TResult>> executeInner, TCommand command)
     {
-      await AssertPreconditions(command);
-      var result = await ExecuteAsync(command);
-      await AssertPostconditionsAsync(result);
+      TResult result;
+
+      try
+      {
+        AssertPreconditions(command);
+        result = await ExecuteAsync(executeInner, command);
+        AssertPostconditionsAsync(result);
+      }
+      catch (Exception ex)
+      {
+        LogException(ex);
+        throw;
+      }
 
       _logSubject.OnCompleted();
       return result;
     }
 
-    private async Task<TResult> ExecuteAsync(TCommand command)
+    private async Task<TResult> ExecuteAsync(Func<TCommand, Task<TResult>> executeInner, TCommand command)
     {
-      Log(LogSeverity.Debug, "Executing task");
-
       var stopwatch = new Stopwatch();
       stopwatch.Start();
 
@@ -67,22 +72,20 @@ namespace PuzzleBox.CodeContract
 
       try
       {
-        result = await _executeTask(command);
+        result = await executeInner(command);
       }
       catch (Exception ex)
       {
         var contractedToThrow = _throws.Contains(ex.GetType());
         var toThrow = contractedToThrow ? ex : new ContractBrokenException($"Not contracted to throw exception of type {ex.GetType().FullName}", ex);
         
-        LogException(toThrow);
-
         if (contractedToThrow)
           throw;
         throw toThrow;
       }
 
       stopwatch.Stop();
-      Log(LogSeverity.Debug, $"Task executed {stopwatch.ElapsedMilliseconds}ms");
+      Log(LogSeverity.Information, $"Task executed {stopwatch.ElapsedMilliseconds}ms");
       return result;
     }
 
@@ -92,40 +95,28 @@ namespace PuzzleBox.CodeContract
       _logSubject.OnError(ex);
     }
 
-    private async Task AssertPreconditions(TCommand command)
+    private void AssertPreconditions(TCommand command)
     {
-      Log(LogSeverity.Debug, "Asserting preconditions");
-
-      try
+      foreach (var precondition in _assertPreconditions)
       {
-        await _assertPreconditions(command);
-      }
-      catch (Exception ex)
-      {
-        Log(LogSeverity.Error, $"Precondition failed: {ex.Message}");
-        _logSubject.OnError(ex);
-        throw new PreconditionFailedException(ex);
+        var passed = precondition.Value(command);
+        if (!passed)
+          throw new PreconditionFailedException(precondition.Key);
       }
 
-      Log(LogSeverity.Debug, "Preconditions passed");
+      Log(LogSeverity.Information, "Preconditions passed");
     }
 
-    private async Task AssertPostconditionsAsync(TResult result)
+    private void AssertPostconditionsAsync(TResult result)
     {
-      Log(LogSeverity.Debug, "Asserting postconditions");
-
-      try
+      foreach (var postcondition in _assertPostconditions)
       {
-        await _assertPostconditions(result);
-      }
-      catch (Exception ex)
-      {
-        Log(LogSeverity.Error, $"Postcondition failed: {ex.Message}");
-        _logSubject.OnError(ex);
-        throw new PostconditionFailedException(ex);
+        var passed = postcondition.Value(result);
+        if (!passed)
+          throw new PostconditionFailedException(postcondition.Key);
       }
 
-      Log(LogSeverity.Debug, "Preconditions passed");
+      Log(LogSeverity.Information, "Postconditions passed");
     }
 
     public void Log(LogSeverity severity, string message)
