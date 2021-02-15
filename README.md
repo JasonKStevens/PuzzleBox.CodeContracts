@@ -18,19 +18,38 @@ A promise is returned by the handler and allows the caller to receive updates on
 Promises can be chained with sub-contracts as command handlers call command handlers.
 
 ```c#
-  var contract = new Contract<ExampleSubCommand, ExampleResult>()
-    .Preconditions(AssertPreconditionsAsync)
-    .Postonditions(AssertPostconditionsAsync)
-    .Throws<ArgumentNullException>()
-    .Behavior(ExecuteInner);
+var contract = new Contract<TransferMoneyCommand, MoneyTransferredEvent>()
+  .Requires(
+    "Amount to transfer must be greater that zero",
+    c => c.Amount > 0)
+  .Requires(
+    "Source account cannot be blank",
+    c => !string.IsNullOrWhiteSpace(c.SourceAccount))
+  .Requires(
+    "Destination account cannot be blank",
+    c => !string.IsNullOrWhiteSpace(c.DestinationAccount))
+        
+  .Ensures(
+    "Amount transferred is the same requested amount.",
+    e => e.Command.Amount == e.AmountTransferred)
+  .Ensures(
+    "Money deducted from source account matches requested amount.",
+    e => e.SourceBalance == e.OriginalSourceBalance - e.Command.Amount)
+  .Ensures(
+    "Money added to destination account matches requested amount.",
+    e => e.DestinationBalance == e.OriginalDestinationBalance + e.Command.Amount)
+
+  .Throws<NotFoundException>("Source account not found")
+  .Throws<NotFoundException>("Destination account not found")
+;
 ```
 
 ```c#
-  // Call to return a promise
-  var promise = commandHandler.Execute(command);
+// Call to return a promise
+var promise = commandHandler.Execute(command);
 
-  promise.LogStream
-    .Subscribe(l => Console.WriteLine(l));
+promise.LogStream
+  .Subscribe(l => Console.WriteLine(l));
 
-  result = await promise.ResultTask;
+result = await promise.ResultTask;
 ```
