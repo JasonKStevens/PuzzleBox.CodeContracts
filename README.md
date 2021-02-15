@@ -57,3 +57,5 @@ var result = await promise.ResultTask;
 
 ## Future
 Explore distributed calls and contracts.  So when a command handler is responsible for a distributed transaction say, or calls out to other subcontracted routines that are running on other machines or processes.
+
+See where this fits in with BDD.
