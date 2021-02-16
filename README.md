@@ -2,7 +2,7 @@
 
 The purpose of this project is to work through the idea of combining [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (DbC) and [Promises](https://en.wikipedia.org/wiki/Futures_and_promises).  The contract defines the specification of the operation and the promise monitors its fulfillment, streaming events back to the client.
 
-## Overview
+## Contracts
 C# doesn't have native support for DbC, like Eiffel or Scala for example, but there are some initiatves for it with [Code Contracts](https://docs.microsoft.com/en-us/dotnet/framework/debug-trace-profile/code-contracts) and [Spec#](https://en.wikipedia.org/wiki/Spec_Sharp).
 
 The intention of a contract is that it relates to the operation's behaviour and not its implementation.  Since this is also what unit tests are supposed to test, it follows that unit tests should test the contract.  Testing side-effects are the exception to this, but could be added to the contract or separated from the operation under contract.
