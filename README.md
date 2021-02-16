@@ -1,13 +1,18 @@
 # PuzzleBox.CodeContracts
 
-The purpose of this project is to work through the idea of combining [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (DbC) and [Promises](https://en.wikipedia.org/wiki/Futures_and_promises).  The contract defines the specification of the routine and the promise monitors its fulfillment, streaming events back to the client.
+The purpose of this project is to work through the idea of combining [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (DbC) and [Promises](https://en.wikipedia.org/wiki/Futures_and_promises).  The contract defines the specification of the operation and the promise monitors its fulfillment, streaming events back to the client.
 
 ## Overview
 C# doesn't have native support for DbC, like Eiffel or Scala for example, but there are some initiatves for it with [Code Contracts](https://docs.microsoft.com/en-us/dotnet/framework/debug-trace-profile/code-contracts) and [Spec#](https://en.wikipedia.org/wiki/Spec_Sharp).
 
-The intention of a contract is that it relates to the routine's behaviour and not its implementation.  Since this is also what unit tests are supposed to test, it follows that unit tests should test the contract.  Testing side-effects are the exception to this - maybe they're something to add to the contract or separate from the routine under contract.
+The intention of a contract is that it relates to the operation's behaviour and not its implementation.  Since this is also what unit tests are supposed to test, it follows that unit tests should test the contract.  Testing side-effects are the exception to this, but could be added to the contract or separated from the operation under contract.
 
-Streaming events back to the client of the routine can be handy sometimes.  It's also nice not to have a library tied to a particular logging technology and instead leave it up to the client to do the logging from the events that are streamed back.  This streaming may also open up calls to a more conversational style API.
+This project allows the formal declaration of an operation's contract, and capturing this information opens up a number posibilities from test code generation to self-describing operations to improved specifications and reliability.
+
+## Promises
+C# has native support for promises, in the form of async/await.  This project expands the concept of a promise to include the "promise to fulfill the contract", and allows the client to recieve detailed information when the contract is broken by either party, receives events related to the contract, key behavioural decisions and progress.
+
+Streaming events back to the client of the operation can be handy and it's nice to free code from being tied to a particular logging technology and a singleton at that.
 
 Promises can be chained to "subcontracts", so the one promise being returned captures all events from the contract and subcontracts.
 
@@ -62,3 +67,4 @@ var result = await promise.ResultTask;
 ## Future
 Explore how contracts handle distributed calls.
 See where this fits in with BDD.
+Look into persistent, long-running operations.
