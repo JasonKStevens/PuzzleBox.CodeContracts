@@ -41,16 +41,19 @@ var contract = new Contract<TransferMoneyCommand, MoneyTransferredResult>()
 ;
 ```
 
-A promise is returned by the handler and allows the caller to receive updates on how the call is progressing, when it completes and when it errors.  Errors could be of type `BrokenContractException`.
-
 ## Promises
-C# has native support for promises, in the form of async/await.  This project expands the concept of a promise to include the "promise to fulfill the contract", and allows the client to recieve detailed information when the contract is broken by either party, receives events related to the contract, key behavioural decisions and progress.
+C# has native support for promises in the form of async/await.  This project expands on this to include the "promise to fulfill the contract", and allows the client to recieve detailed information during execution:
 
-Streaming events back to the client of the operation can be handy and it's nice to free code from being tied to a particular logging technology and a singleton at that.
+* When the contract is broken by either party
+* Progress
+* Key behavioural decisions
+* Side-effects relating to behaviour
 
-Promises can be chained to "subcontracts", so the one promise being returned captures all events from the contract and subcontracts.
+Streaming events back to the client of an operation can be handy and it also frees the operation from being tied to a particular logging technology.
 
-This is what calling an opeartion looks like:
+Promises can be chained to subcontracts (when operations call other operations).
+
+The client calling an opeartion:
 
 ```c#
 var promise = commandHandler.Execute(command);
