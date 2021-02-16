@@ -9,15 +9,7 @@ The intention of a contract is that it relates to the operation's behaviour and 
 
 This project allows the formal declaration of an operation's contract, and capturing this information opens up a number posibilities, from self-describing operations to test code generation to improved specifications and reliability.
 
-## Promises
-C# has native support for promises, in the form of async/await.  This project expands the concept of a promise to include the "promise to fulfill the contract", and allows the client to recieve detailed information when the contract is broken by either party, receives events related to the contract, key behavioural decisions and progress.
-
-Streaming events back to the client of the operation can be handy and it's nice to free code from being tied to a particular logging technology and a singleton at that.
-
-Promises can be chained to "subcontracts", so the one promise being returned captures all events from the contract and subcontracts.
-
-## Description
-Each command handler defines its contract: preconditions, postconditions and exceptions thrown. The terminology is borrowed from Eiffel.
+Each command handler defines its contract: preconditions, postconditions and exceptions thrown. The terminology is borrowed from Eiffel:
 
 ```c#
 var contract = new Contract<TransferMoneyCommand, MoneyTransferredResult>()
@@ -51,6 +43,15 @@ var contract = new Contract<TransferMoneyCommand, MoneyTransferredResult>()
 
 A promise is returned by the handler and allows the caller to receive updates on how the call is progressing, when it completes and when it errors.  Errors could be of type `BrokenContractException`.
 
+## Promises
+C# has native support for promises, in the form of async/await.  This project expands the concept of a promise to include the "promise to fulfill the contract", and allows the client to recieve detailed information when the contract is broken by either party, receives events related to the contract, key behavioural decisions and progress.
+
+Streaming events back to the client of the operation can be handy and it's nice to free code from being tied to a particular logging technology and a singleton at that.
+
+Promises can be chained to "subcontracts", so the one promise being returned captures all events from the contract and subcontracts.
+
+This is what calling an opeartion looks like:
+
 ```c#
 var promise = commandHandler.Execute(command);
 
@@ -66,5 +67,6 @@ var result = await promise.ResultTask;
 
 ## Future
 Explore how contracts handle distributed calls.
+How to capture side-effects.
 See where this fits in with BDD.
 Look into persistent, long-running operations.
