@@ -5,9 +5,9 @@ The purpose of this project is to work through the idea of combining [Design by 
 ## Contracts
 C# doesn't have native support for DbC, like Eiffel or Scala for example, but there are some initiatves for it with [Code Contracts](https://docs.microsoft.com/en-us/dotnet/framework/debug-trace-profile/code-contracts) and [Spec#](https://en.wikipedia.org/wiki/Spec_Sharp).
 
-The intention of a contract is that it relates to the operation's behaviour and not its implementation.  Since this is also what unit tests are supposed to test, it follows that unit tests should test the contract.  Testing side-effects are the exception to this, but could be added to the contract or separated from the operation under contract.
+The intention of a contract is that it relates to the operation's behaviour and not its implementation.  Since this is also what unit tests are supposed to test, it follows that unit tests should test the contract.  Testing side-effects are the exception to this, but they could either be added to the contract or separated from the operation under contract.  To be continued.
 
-This project allows the formal declaration of an operation's contract, and capturing this information opens up a number posibilities from test code generation to self-describing operations to improved specifications and reliability.
+This project allows the formal declaration of an operation's contract, and capturing this information opens up a number posibilities, from self-describing operations to test code generation to improved specifications and reliability.
 
 ## Promises
 C# has native support for promises, in the form of async/await.  This project expands the concept of a promise to include the "promise to fulfill the contract", and allows the client to recieve detailed information when the contract is broken by either party, receives events related to the contract, key behavioural decisions and progress.
